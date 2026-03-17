@@ -40,6 +40,12 @@ function formatLocalDateTime(date) {
 }
 
 cron.schedule("* * * * *", () => {
+
+    if (!db) {
+    console.log("⚠️ No DB → skipping scheduler");
+    return;
+  }
+  
   const now = new Date();
   
   const start = new Date(now.getTime() - 30 * 1000);
