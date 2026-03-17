@@ -280,6 +280,10 @@ async function sendWebPush(subscription, payload) {
 }
 
 function runNotificationScheduler() {
+  if (!db) {
+    console.log("⚠️ No DB → skipping runNotificationScheduler");
+    return;
+  }
   // Query tasks that are due for notification
   // Criteria:
   // - not completed
