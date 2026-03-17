@@ -1,64 +1,89 @@
-# Full Stack To-Do Productivity App
+# 🚀 Fullstack Todo Productivity App
 
-A full-stack productivity web application designed to manage tasks, schedule reminders, and deliver push notifications even when the browser is closed.
-
-This project was built using a **project-driven learning approach**, evolving from a simple frontend prototype into a complete full-stack system with authentication, database integration, and backend scheduling logic.
-
-The project helped explore real-world concepts such as **system architecture, API interaction, authentication, and notification systems**.
+A modern full-stack productivity application with real-time task tracking and push notification reminders.
 
 ---
 
-# Project Motivation
+## 🔥 Features
 
-The goal of this project was to understand how modern web applications are structured and how frontend, backend, and databases interact together.
-
-Instead of learning concepts purely from theory, the application was developed iteratively:
-
-1. Build a frontend prototype
-2. Learn backend architecture
-3. Integrate database and authentication
-4. Add real-world features such as scheduled notifications
-
-This approach helped develop a deeper understanding of **full-stack application design and software engineering workflows**.
+* 🔐 JWT Authentication (Login / Signup)
+* 📝 Create, update, delete tasks
+* ⏰ Schedule tasks with date & time
+* 🔔 Push notifications using Service Workers
+* ⚡ Background cron-based reminder system
+* 📊 Task prioritization (Low / Medium / High)
+* 📱 Responsive UI
 
 ---
 
-# Key Features
+## 🧠 Tech Stack
 
-- User authentication system (Signup & Login)
-- Secure password hashing
-- Task management system (Create / Update / Delete tasks)
-- Task scheduling functionality
-- Push notification reminders
-- Notifications even when browser is closed (Service Worker)
-- Backend scheduler to trigger notifications
-- Simple and responsive user interface
+**Frontend**
 
----
+* HTML, CSS, JavaScript
+* Service Workers (Push API)
 
-# Tech Stack
+**Backend**
 
-## Frontend
-- HTML
-- CSS
-- JavaScript
-
-## Backend
-- Node.js
-- Express.js
-
-## Database
-- MySQL
-
-## Other Technologies
-- JWT Authentication
-- Web Push API
-- Service Workers
-- REST API communication
+* Node.js, Express.js
+* MySQL
+* node-cron
+* web-push (VAPID)
 
 ---
 
-# Project Structure
+## ⚙️ How It Works
+
+1. User creates a task with a scheduled time
+2. Backend stores it in MySQL
+3. Cron job checks every minute
+4. When time matches → push notification sent
+5. Service Worker displays notification
+
+---
+
+## 🔑 Environment Variables
+
+Create a `.env` file:
+
+```
+DB_HOST=your_host
+DB_USER=your_user
+DB_PASSWORD=your_password
+DB_NAME=your_db
+
+VAPID_PUBLIC_KEY=your_public_key
+VAPID_PRIVATE_KEY=your_private_key
+VAPID_EMAIL=your_email
+```
+
+---
+
+## 🚀 Run Locally
+
+```
+npm install
+node server.js
+node notifier.js
+```
+
+---
+
+## ⚠️ Notes
+
+* Notifications require HTTPS (works in production)
+* App runs in limited mode if DB is not connected
+
+---
+
+## 📌 Future Improvements
+
+* Deploy with cloud database
+* Add recurring tasks
+* Add real-time sync (WebSockets)
+* Mobile app version
+
+---
 
 ## Screenshots
 
@@ -70,3 +95,7 @@ This approach helped develop a deeper understanding of **full-stack application 
 
 ### Notification Example
 ![Notification](screenshots/notification.png)
+
+## 👨‍💻 Author
+
+Anant Negi
