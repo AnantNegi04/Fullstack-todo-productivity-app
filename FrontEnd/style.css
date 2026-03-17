@@ -1,0 +1,381 @@
+/* ------------------------------------------
+   ROOT & GLOBAL
+------------------------------------------ */
+:root {
+  --bg: #f5f5f5;
+  --text: #111;
+  --muted: #6f6f6f;
+  --accent: #42b67a;
+  --white: #fff;
+  --card: #efefef;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: "Inter", sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------
+   TOPBAR
+------------------------------------------ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--white);
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.app-title {
+  margin: 0;
+  font-family: "Kaisei Tokumin", serif;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.title-part1 {
+  color: var(--text);
+}
+.title-part2 {
+  color: var(--accent);
+  margin-left: 4px;
+}
+
+.center-stats {
+  flex: 1;
+  text-align: center;
+}
+.task-stats {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.hamburger {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+/* ------------------------------------------
+   MAIN CONTAINER
+------------------------------------------ */
+.main-container {
+  display: flex;
+  justify-content: center;
+  padding: 24px 18px;
+}
+
+.content {
+  width: 100%;
+  max-width: 760px;
+}
+
+/* ------------------------------------------
+   LIST HEADER
+------------------------------------------ */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.list-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.sort-select {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid #dadada;
+  background: var(--white);
+}
+
+/* ------------------------------------------
+   TASK LIST
+------------------------------------------ */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* SOFT GREY CARD */
+.task-card {
+  background: var(--card);
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+}
+
+/* TASK TITLE */
+.task-title {
+  font-weight: 700;
+  font-size: 17px;
+  color: #0b0b0b;
+}
+
+/* META LINES */
+.meta-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.meta-line svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.9;
+}
+
+/* TIME REMAINING */
+.remaining {
+  font-size: 13px;
+  color: #5a5a5a;
+}
+
+/* PRIORITY BADGE */
+.priority {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #444;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge.low {
+  background: rgba(66, 182, 122, 0.15);
+  color: var(--accent);
+}
+.badge.medium {
+  background: rgba(255, 193, 7, 0.15);
+  color: #e58b1a;
+}
+.badge.high {
+  background: rgba(244, 67, 54, 0.18);
+  color: #d33;
+}
+
+/* ------------------------------------------
+   THREE-DOT MENU
+------------------------------------------ */
+.task-menu-btn {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #444;
+  font-size: 18px;
+}
+
+.task-menu {
+  position: absolute;
+  right: 12px;
+  top: 40px;
+  background: var(--white);
+  padding: 8px 0;
+  width: 140px;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 20;
+}
+
+.task-menu.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.task-menu-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #222;
+}
+
+.task-menu-item:hover {
+  background: #f7f7f7;
+}
+
+/* ------------------------------------------
+   VIEW MORE
+------------------------------------------ */
+.viewmore-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.view-more-btn {
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: 1px solid #dcdcdc;
+  background: var(--white);
+  cursor: pointer;
+}
+
+/* ------------------------------------------
+   FAB
+------------------------------------------ */
+.fab {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: var(--white);
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 18px rgba(66,182,122,0.25);
+}
+
+/* ------------------------------------------
+   DRAWER
+------------------------------------------ */
+.drawer {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 300px;
+  height: 100%;
+  background: var(--white);
+  box-shadow: -8px 0 20px rgba(0,0,0,0.06);
+  transition: right 0.28s ease;
+  z-index: 999;
+}
+
+.drawer.open {
+  right: 0;
+}
+
+.drawer-inner {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.drawer-btn {
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.drawer-btn.danger {
+  background: #ffe7e7;
+  color: #c00;
+}
+
+/* ------------------------------------------
+   MODAL
+------------------------------------------ */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-card {
+  width: 92%;
+  max-width: 420px;
+  background: var(--white);
+  padding: 18px;
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-card input,
+.modal-card select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+}
+.btn.primary {
+  background: var(--accent);
+  color: var(--white);
+}
+.btn.neutral {
+  background: #e8e8e8;
+}
+
+/* ------------------------------------------
+   RESPONSIVE
+------------------------------------------ */
+@media (max-width: 720px) {
+  .content {
+    max-width: 100%;
+  }
+  .task-card {
+    padding: 12px 14px;
+  }
+  .app-title {
+    font-size: 24px;
+  }
+}

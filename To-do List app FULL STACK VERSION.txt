@@ -1,0 +1,258 @@
+To-do List app FULL STACK VERSION 
+---
+
+# 🧱 **COMPARISON: Frontend App vs Full-Stack App**
+
+| **Feature / Aspect**  | **Frontend-only App (Old)**                         | **Full-Stack App (Now)**                                             | **Purpose / Benefit**                                        |
+| --------------------- | --------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------ |
+| **Data Storage**      | Used `localStorage` in browser                      | Uses **MySQL Database** on backend                                   | Persistent, reliable, shared data storage                    |
+| **Backend Logic**     | None – everything handled in `script.js`            | Uses **Node.js + Express.js server**                                 | Handles user authentication, API routes, and task management |
+| **Authentication**    | No login system                                     | Uses **JWT (JSON Web Tokens)** for secure login/signup               | Only authorized users can access their own data              |
+| **Security**          | Client-side only (anyone could modify localStorage) | Backend validates input, uses encryption, JWT tokens                 | Prevents unauthorized access and tampering                   |
+| **Data Persistence**  | Lost when clearing browser data                     | Stored safely in MySQL DB                                            | Survives page reloads, login sessions, etc.                  |
+| **Communication**     | None (data stayed in browser)                       | Uses **HTTP requests** with `fetch()` from frontend to backend       | Allows client-server communication                           |
+| **Password Handling** | Plain text (if any)                                 | Hashed using **bcrypt.js**                                           | Prevents storing actual passwords                            |
+| **Sorting & Logic**   | Done directly in JS array                           | Data can be sorted or filtered via JS or SQL query                   | Backend can handle large data efficiently                    |
+| **Deployment Scope**  | Runs locally only (browser)                         | Backend can be deployed on cloud servers (e.g., Render, Vercel, AWS) | Scalable, sharable, multi-user capable                       |
+| **Notifications**     | Browser notifications                               | Can be enhanced with server push / service workers                   | Future scope for real-time updates                           |
+| **File Structure**    | Single folder (HTML, CSS, JS)                       | Multi-layered: Frontend + Backend + Database                         | Modular, maintainable architecture                           |
+
+---
+
+# ⚙️ **Backend Technologies & Their Roles**
+
+| **Tool / Library**       | **Purpose / Functionality**                        | **Key Concept / Why It’s Important**                               |
+| ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------ |
+| **Node.js**              | Runtime environment for executing JS on the server | Allows JavaScript to run outside the browser                       |
+| **Express.js**           | Web framework for Node.js                          | Simplifies route handling, middleware, and HTTP requests/responses |
+| **MySQL / mysql2**       | Relational database system                         | Stores structured data in tables (users, tasks)                    |
+| **bcrypt.js**            | Hashes (encrypts) passwords before saving          | Protects user passwords from being exposed even if database leaks  |
+| **jsonwebtoken (JWT)**   | Generates tokens after login                       | Used for verifying authenticated users in each API request         |
+| **cors**                 | Cross-Origin Resource Sharing                      | Allows frontend (different origin) to communicate with backend     |
+| **body-parser**          | Middleware for parsing incoming request bodies     | Converts JSON from frontend into usable `req.body` object          |
+| **fetch API (frontend)** | Makes HTTP requests from JS                        | Connects the frontend to backend endpoints like `/login`, `/tasks` |
+| **async / await**        | Modern JS syntax for handling async operations     | Simplifies asynchronous code like API calls                        |
+| **setTimeout()**         | Schedules notification timing                      | Used for reminders (client-side notifications)                     |
+
+---
+
+# 🧩 **Backend: Route & Functionality Summary**
+
+| **Route**           | **HTTP Method** | **Protected** | **Purpose / Function**                           |
+| ------------------- | --------------- | ------------- | ------------------------------------------------ |
+| `/signup`           | `POST`          | ❌ No          | Creates a new user; hashes password using bcrypt |
+| `/login`            | `POST`          | ❌ No          | Verifies user credentials, returns JWT token     |
+| `/tasks`            | `GET`           | ✅ Yes         | Returns all tasks for the logged-in user         |
+| `/tasks`            | `POST`          | ✅ Yes         | Adds a new task for the logged-in user           |
+| `/tasks/:id`        | `DELETE`        | ✅ Yes         | Deletes a specific task                          |
+| `/tasks/:id/toggle` | `PUT`           | ✅ Yes         | (To be added) Toggles completion status          |
+| `/`                 | `GET`           | ❌ No          | Test route to confirm backend running            |
+
+---
+
+# 🔒 **Authentication Flow (JWT-Based Security)**
+
+1. **User signs up**
+
+   * Frontend sends username, email, password → `/signup`
+   * Backend hashes password with **bcrypt** and stores in DB
+     (`password → bcrypt.hash(password, 10)`)
+
+2. **User logs in**
+
+   * Frontend sends email + password → `/login`
+   * Backend:
+
+     * Retrieves stored hashed password
+     * Compares with bcrypt.compare()
+     * If valid → creates a **JWT token**
+
+3. **Token creation**
+
+   ```js
+   const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
+       expiresIn: "1h"
+   });
+   ```
+
+4. **Frontend stores token**
+
+   ```js
+   localStorage.setItem("token", token);
+   ```
+
+5. **Authenticated requests**
+
+   * Each API call includes this token in the header:
+
+     ```js
+     headers: { Authorization: `Bearer ${token}` }
+     ```
+   * Backend uses middleware:
+
+     ```js
+     jwt.verify(token, JWT_SECRET)
+     ```
+   * If verified → allows access to that user’s data.
+
+---
+
+# 🗄️ **Database Structure (MySQL)**
+
+### **Table 1: `users`**
+
+| Field      | Type         | Description           |
+| ---------- | ------------ | --------------------- |
+| id         | INT (PK)     | Unique user ID        |
+| username   | VARCHAR(255) | User name             |
+| email      | VARCHAR(255) | Unique email          |
+| password   | VARCHAR(255) | Hashed password       |
+| created_at | TIMESTAMP    | Account creation time |
+
+### **Table 2: `tasks`**
+
+| Field      | Type                        | Description            |
+| ---------- | --------------------------- | ---------------------- |
+| id         | INT (PK)                    | Unique task ID         |
+| user_id    | INT (FK)                    | Linked to user ID      |
+| text       | VARCHAR(255)                | Task description       |
+| date       | DATE                        | Due date               |
+| time       | TIME                        | Due time               |
+| priority   | ENUM('low','medium','high') | Priority of task       |
+| completed  | TINYINT(1)                  | 0 = not done, 1 = done |
+| created_at | TIMESTAMP                   | Auto-generated         |
+
+---
+
+# 🧠 **Core Concepts You’ve Implemented**
+
+| **Concept**                      | **Meaning / Role**                                                          |
+| -------------------------------- | --------------------------------------------------------------------------- |
+| **REST API**                     | Standardized way to structure backend endpoints (GET, POST, PUT, DELETE)    |
+| **Middleware**                   | Functions like `verifyToken()` that process requests before reaching routes |
+| **Token-Based Auth**             | Allows stateless user sessions — backend doesn’t store session data         |
+| **Asynchronous JS**              | Enables non-blocking API calls with `async/await`                           |
+| **Relational DB**                | Tables connected via `user_id`, ensures data integrity                      |
+| **Validation**                   | Prevents invalid data (like past dates or missing fields)                   |
+| **Frontend Integration**         | Uses `fetch()` to communicate between UI and backend                        |
+| **Cross-Origin Requests (CORS)** | Allows running frontend (file:// or localhost) with separate backend        |
+
+---
+
+# 🌍 **Final Architecture Overview**
+
+```
+[Frontend: HTML/CSS/JS]
+         │
+         ▼
+[Fetch API calls → http://localhost:5000]
+         │
+         ▼
+[Backend: Node.js + Express.js]
+   │   ├── Authentication (JWT + bcrypt)
+   │   ├── REST Routes (/login, /tasks, etc.)
+   │   └── Token Verification Middleware
+         │
+         ▼
+[Database: MySQL]
+   ├── users
+   └── tasks
+```
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+This was the initial implementation of our to do list app transitioning from a web frontend app to a full-stack application.
+
+The features we aimed to implement as part of our PHASE-1 of this project were:-
+
+1)Backend integration of server with dbms for storing user details and tasks
+
+2) Authentication setup for users
+
+3) Real push notification even if the browser is closed.
+
+4) Feature to edit task after adding/saving one, snooze/stop notifications, completed toggle button
+
+5) UI enhancements by separating login/signup pages and making few changes to the look of our homescreen of the web-app
+   using floating modal form, toggle sidebar form, and wrapping element inside these forms makes UI much cleaner and user friendly.
+
+Phase 1 of our project ends here, and we'll move towards the phase 2 of which would include some of the key feature and enhancement for this application.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+| **Stage / Component**             | **What We Implemented**                                              | **Issue Faced**                                      | **Root Cause**                                             | **Fix Applied**                                                                    |
+| --------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Splash Screen Animation**       | Black background, dual-tone "Tsuruism" fade-in, delayed intro screen | Animation not appearing, or appearing too fast       | Not enough delay, HTML not loading before animation        | Added timed delay (0.2–0.3s), ensured CSS keyframes + JS load sequencing           |
+| **Splash → Login Routing**        | Redirect splash.html → login.html → index.html                       | Always redirecting to login even before splash loads | Static middleware overriding routes                        | Changed route order: **GET "/" first**, then `express.static()`                    |
+| **Static File Path Resolution**   | Serve frontend files correctly                                       | Got `Cannot GET /frontend/frontend/...`              | Wrong `path.join()` usage                                  | Corrected static path to `path.join(__dirname, "..")`                              |
+| **Service Worker Interference**   | SW caching pages for offline push                                    | Splash never appeared after first load               | Old service worker cached login.html                       | Unregistered SW, cleared site storage, ensured SW served through explicit route    |
+| **Login Page Auto-Redirect**      | Auto-skip login if token exists                                      | Login page instantly redirected before JS executed   | Auto-redirect triggered on page load before event handling | Wrapped redirect inside pathname check: only redirect if currently on `login.html` |
+| **auth.js Script Failures**       | Login & signup flow                                                  | `data is not defined` errors                         | Stray lines in auth.js running on load                     | Removed stray lines + restructured code safely                                     |
+| **Push Notification Setup**       | Web Push (VAPID) + SW                                                | Browser returning WNS endpoint in Edge               | Edge uses Windows Notification Service (not compatible)    | Switched to testing in Chrome/Firefox which provide compatible FCM endpoints       |
+| **Subscription Not Stored**       | POST /subscribe                                                      | No row created in DB despite “201”                   | Script terminated early due to auth.js errors              | Fixed auth.js → subscription code executed normally                                |
+| **p256dh Length Mismatch**        | Push encryption                                                      | "p256dh should be 65 bytes long"                     | Manual or corrupted Base64 conversion                      | Used correct Base64URL decoder (`urlBase64ToUint8Array`)                           |
+| **MySQL Subscription Table**      | `push_subscriptions` table                                           | Incorrect column encoding → corrupted keys           | latin1 encoding used by default                            | Recreated table with utf8mb4-safe TEXT/VARCHAR types                               |
+| **No /stop Endpoint**             | In-notification controls                                             | Missing server route for stop                        | Endpoint didn't exist                                      | Added `/tasks/:id/stop` with JWT + SQL update                                      |
+| **Snooze/Stop From Notification** | Notification action buttons                                          | Service Worker had no JWT access                     | SW cannot use localStorage                                 | Passed JWT via `postMessage` to SW, stored in SW global variable                   |
+| **Notification Action Handling**  | Snooze 10m + Stop buttons                                            | Fetch requests unauthorized                          | Missing Authorization header                               | Added `"Authorization": "Bearer ${JWT_TOKEN}"` inside SW fetch                     |
+| **Final Push Flow**               | Fully working reminders                                              | —                                                    | —                                                          | Push works with snooze, stop, scheduler, and UI flow                               |
+
+
+
+This table is an overview of what we implemented and what challenges we faced the major reason behind this update was to make UI subtle and pleasing. 
+
+For this we added a start splash screen where we animated the name of application we decided. 
+
+The problem occurred that in that our directory was not getting located with our older format of express.static()
+so we changed it from 
+
+app.use(express.static(path.join(__dirname, "../")));
+
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../splash.html")));
+
+To this
+
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "..", "splash.html")));
+
+app.use(express.static(path.join(__dirname, "..")));
+
+This fixed the error of cannot get splash.html
+
+But we were still not able to see the animation screen because of the old service-worker caching which was landing directly to login page.
+
+Unregister SW
+
+Clear site data
+
+Restart server
+
+Reintroduce SW via explicit route /service-worker.js
+
+app.get("service-worker.js", (req, res) => {
+  res.setHeader("Content-type", "application/javascript");
+  res.sendFile(path.join(__dirname, "..", "service-worker.js"));
+});
+
+After updating this we everything worked fine but the UI changes were still needed so we re-designed UI.
+
+Which somehow broke the notification because changing the UI led to change in date and time format which led to no tasks detection by notifier server in db.
+
+So we fixed the format but this time the VAPID KEYS length were not being stored or accessed. 
+Which led to subscription problem.
+
+So we changed our push_subscription table
+Used official conversion urlBase64ToUint8Array
+Ensure MySQL table uses utf8mb4
+Clean delete & recreate table
+
+Then we encountered an error with subscription not being called.
+Which was caused by auth.js file.
+
+auth.js had stray code referencing data outside event handlers → JavaScript crashed before subscription block could run.
+
+Rewrote auth.js code.
+
+Then all this were implanted and running so we added the feature of snooze and stop notification as well.
+
+\

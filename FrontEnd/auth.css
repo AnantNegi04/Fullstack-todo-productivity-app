@@ -1,0 +1,105 @@
+/* ---------------------------------------
+   TSURUISM AUTH THEME — BLACK EDITION
+---------------------------------------- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", sans-serif;
+}
+
+body {
+    background: #000;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #fff;
+}
+
+/* Centered Auth Container */
+.auth-container {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    padding: 40px 32px;
+    width: 100%;
+    max-width: 380px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
+}
+
+.auth-container h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.auth-container p {
+    font-size: 15px;
+    margin-bottom: 20px;
+    color: #bbbbbb;
+}
+
+/* Input Fields */
+.auth-container input {
+    width: 100%;
+    padding: 13px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: 0.25s;
+}
+
+.auth-container input::placeholder {
+    color: #aaaaaa;
+}
+
+.auth-container input:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 6px #4CAF50;
+}
+
+/* Button */
+button {
+    width: 100%;
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 5px;
+    transition: 0.25s ease;
+}
+
+button:hover {
+    background: #3e9a43;
+}
+
+/* Bottom Links */
+.auth-container a {
+    color: #4CAF50;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-container a:hover {
+    text-decoration: underline;
+}
+
+/* Message text */
+.msg {
+    margin-top: 14px;
+    color: #ffddaa;
+    font-size: 14px;
+}

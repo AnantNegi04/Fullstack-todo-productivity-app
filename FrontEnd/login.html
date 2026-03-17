@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset = "UTF-8"/>
+        <meta name = "viewreport" content = "width= device-width, initial-scale = 1.0"/>
+        <title>Login | To-Do App</title>
+        <link rel = "stylesheet" href = "auth.css" />
+    </head>
+    <body>
+        <div class ="auth-container">
+            <h1>Welcome Back👋</h1>
+            <p>Login to your To-Do account</p>
+
+            <input type ="email" id = "loginEmail" placeholder = "Enter your email"/>
+            <input type = "password" id ="loginPassword" placeholder="Enter your password"/>
+
+            <button id = "loginBtn">Login</button>
+            <p>Don't have an account?
+                <a href = "signup.html">Create one</a>
+            </p>
+
+            <p id ="loginMsg" class = "msg"</p>
+            </div>
+
+            <script src = "auth.js"></script>
+            <script>
+                if ("serviceWorker" in navigator) {
+                navigator.serviceWorker
+                    .register("service-worker.js")
+                    .then(() => console.log("✅ Service Worker registered from login page"))
+                    .catch(err => console.log("❌ SW registration failed:", err));
+            }
+            </script>
+        </body>
+        </html>
+        

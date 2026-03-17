@@ -1,0 +1,10 @@
+JWT_SECRET=super_secret_jwt_key
+
+VAPID_PUBLIC_KEY=BNfoYo2ZeryRDw5GJkTUVfb2NT_wK5rjtspHAHlJHCjMvc3yuJJBsWlTkmvIuhsPv_gp5iUrSoJqv7qFmTQkY0I
+VAPID_PRIVATE_KEY=wNmlp-Wzi5jHky5R45w6oM4AiydQYgpNTsygNNucA3Q
+VAPID_EMAIL=mailto:youremail@example.com
+
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=root1234
+DB_NAME=todolist

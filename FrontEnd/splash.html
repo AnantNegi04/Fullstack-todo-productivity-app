@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tsuruism — Loading</title>
+
+  <!-- Kaisei Tokumin (brand) fallback to Playfair/serif if not available -->
+  <link href="https://fonts.googleapis.com/css2?family=Kaisei+Tokumin:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="splash.css">
+</head>
+<body>
+  <div class="splash-wrap" role="main" aria-label="Tsuruism splash">
+    <h1 class="splash-logo" aria-hidden="true">
+      <span class="part1">Tsur</span><span class="part2">uism</span>
+    </h1>
+  </div>
+
+  <script>
+    // Keep splash visible for a short moment; mirrors CSS animation duration.
+    // Slight delay so users see the black screen first.
+    const SPLASH_MS = 3800;
+    setTimeout(() => {
+      // go to login after splash
+      window.location.href = "login.html";
+    }, SPLASH_MS);
+  </script>
+</body>
+</html>

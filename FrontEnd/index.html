@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tsuruism — Tasks</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Kaisei+Tokumin:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons (for 3-dot icon) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app-root">
+
+    <!-- Top Header -->
+    <header class="topbar">
+      <h1 class="app-title">
+        <span class="title-part1">Tsur</span><span class="title-part2">uism</span>
+      </h1>
+
+      <div class="center-stats">
+        <div id="taskStats" class="task-stats">0 completed • 0 remaining</div>
+      </div>
+
+      <!-- Navigation Drawer Toggle -->
+      <button id="navToggle" class="hamburger" aria-label="Menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+      <div class="content">
+
+        <!-- Task List Header -->
+        <div class="list-header">
+          <h2 class="list-title">Task List</h2>
+
+          <select id="sortOption" class="sort-select">
+            <option value="default">Sort by</option>
+            <option value="date">Date/Time</option>
+            <option value="priority">Priority</option>
+            <option value="name">Name</option>
+          </select>
+        </div>
+
+        <!-- Task List -->
+        <div id="taskList" class="task-list"></div>
+
+        <div class="viewmore-wrap">
+          <button id="viewMoreBtn" class="view-more-btn">View More</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Floating Add Button -->
+    <button id="openModal" class="fab" aria-label="Add Task">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <!-- Drawer Menu -->
+    <aside id="navDrawer" class="drawer" aria-hidden="true">
+      <div class="drawer-inner">
+        <h3>Settings</h3>
+        <button id="enableNotifBtn" class="drawer-btn">
+          <i class="fa-regular fa-bell"></i> Enable Notifications
+        </button>
+        <button id="logoutBtn" class="drawer-btn danger">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal" aria-hidden="true">
+      <div class="modal-card">
+
+        <h3 id="modalTitle">Add Task</h3>
+
+        <input type="text" id="taskInput" placeholder="Enter task" />
+
+        <div class="row">
+          <input type="date" id="taskDate" />
+          <input type="time" id="taskTime" />
+        </div>
+
+        <select id="taskPriority">
+          <option value="low">Low Priority</option>
+          <option value="medium">Medium Priority</option>
+          <option value="high">High Priority</option>
+        </select>
+
+        <div class="modal-actions">
+          <button id="addTaskBtn" class="btn primary">Add Task</button>
+          <button id="closeModal" class="btn neutral">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- App Logic -->
+  <script src="script.js"></script>
+</body>
+</html>

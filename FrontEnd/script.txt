@@ -1,0 +1,234 @@
+console.log("JS file is connected!");
+
+console.log("Notification permission: ", Notification.permission);
+
+if(Notification.permission !== "granted"){
+    Notification.requestPermission().then( permission =>{
+        console.log("Notification permission: ", permission);
+    });
+    }
+
+
+function showNotification(taskText){
+    if(Notification.permission === "granted"){
+
+        new Notification("Task Reminder", {
+            body: taskText,
+            icon: "icon.png"
+        });
+
+        const audio = new Audio("notification.mp3");
+        audio.play().catch(err => console.log("Sound playback blocked:", err));
+
+    }
+}
+
+
+
+function scheduleNotification(task){
+    if(!task.date || !task.time) return;
+
+    const taskDateTime = new Date(`${task.date}T${task.time}`);
+    const now = new Date();
+    const delay = taskDateTime - now;
+
+    if(delay>0){
+        setTimeout( () => showNotification(task.text), delay);
+    }
+    }
+
+
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+function saveTasks(){
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+}
+
+const addTaskBtn = document.getElementById("addTaskBtn");
+const taskInput = document.getElementById("taskInput");
+const taskList = document.getElementById("taskList");
+const taskDate = document.getElementById("taskDate");
+const taskTime = document.getElementById("taskTime");
+const taskPriority = document.getElementById("taskPriority");
+const openModal = document.getElementById("openModal");
+const closeModal = document.getElementById("closeModal");
+const taskModal = document.getElementById("taskModal");
+const clearTasksButton = document.getElementById("clearTasksButton");
+const sortOption = document.getElementById("sortOption");
+
+function sortTasks(criteria){
+
+    tasks.forEach(task => {
+        if(!task.date) task.date ="";
+        if(!task.time) task.time ="";
+        if(!task.priority) task.priority = "";
+        if(!task.text) task.text = "";
+    });
+
+    if(criteria === "date"){
+        tasks.sort((a,b) => {
+           const dateA = new Date(`${a.date}T${a.time}`);
+           const dateB = new Date(`${b.date}T${b.time}`);
+           return dateA - dateB;
+        });
+    } else if(criteria === "priority"){
+        const order = { high: 1, medium:2, low: 3};
+        tasks.sort((a,b) => order[a.priority] - order[b.priority]);
+    }
+    else if(criteria === "name"){
+        tasks.sort((a,b) => a.text.localeCompare(b.text));
+    }
+
+    saveTasks();
+    loadTasks();
+    }
+
+sortOption.addEventListener("change", () =>{
+
+    sortTasks(sortOption.value);
+});
+
+
+
+openModal.addEventListener("click", () => {
+    taskModal.style.display = "flex";
+});
+
+closeModal.addEventListener("click", () => {
+    taskModal.style.display = "none";
+});
+
+window.addEventListener("click", (event) => {
+    if(event.target === taskModal) {
+        taskModal.style.display = "none";
+    }
+});
+
+
+clearTasksButton.addEventListener("click", function() {
+    taskList.innerHTML = "";  // Clear all tasks
+    tasks = [];
+    saveTasks();
+});
+
+
+
+addTaskBtn.addEventListener("click", () => {
+    const taskText = taskInput.value.trim();
+    if(taskText === "") return;
+
+    const taskDateValue = taskDate.value;
+    const taskTimeValue = taskTime.value;
+
+    if(taskDateValue && taskTimeValue){
+        const taskDateTime = new Date(`${taskDateValue}T${taskTimeValue}`);
+        const now = new Date();
+
+        if(taskDateTime < now){
+            alert("⚠️ You cannot set a task in the past!");
+            return;
+        }
+    }
+
+    const newTask ={
+        text: taskText,
+        date: taskDate.value || "",
+        time: taskTime.value || "",
+        priority: taskPriority.value || "",
+        completed: false,
+    };
+
+    tasks.push(newTask);
+    saveTasks();
+    renderTask(newTask);
+    scheduleNotification(newTask);
+
+    //reset form + close modal
+    taskInput.value = "";
+    taskDate.value = "";
+    taskTime.value = "";
+    taskPriority.value = "";
+    taskModal.style.display = "none";
+
+});
+
+
+//render task for DOM only
+
+function renderTask(task){
+    const li = document.createElement("li");
+    
+
+    //text container
+    const textDiv = document.createElement("div");
+    textDiv.className = "task-text";
+
+    const mainText = document.createElement("span");
+    mainText.textContent = task.text;
+    textDiv.appendChild(mainText);
+
+
+    if(task.date){
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "task-date";
+        dateSpan.textContent = ` 📅 ${task.date}`;
+        textDiv.appendChild(dateSpan);
+    }
+    if(task.time){
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "task-time";
+        timeSpan.textContent = ` ⏰ ${task.time}`;
+        textDiv.appendChild(timeSpan);
+    }
+    if(task.priority){
+        const prioritySpan = document.createElement("span");
+        prioritySpan.className = "task-priority";
+        prioritySpan.textContent = `⚡ ${task.priority}`;
+        textDiv.appendChild(prioritySpan);
+    }
+
+    //action button container
+    const actions = document.createElement("div");
+    actions.className = "task-actions";
+    
+
+    //complete toggle
+
+    const completedBtn = document.createElement("button");
+    completedBtn.textContent = " ✔️";
+    completedBtn.addEventListener("click", () => {
+        task.completed = !task.completed;
+        if(task.completed) li.classList.add("completed");
+        else li.classList.remove("completed");
+        saveTasks();
+    });
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "❌";
+    delBtn.addEventListener("click", function(){
+        taskList.removeChild(li);
+        tasks = tasks.filter((t) => t !== task);
+        saveTasks();
+    });
+
+    actions.appendChild(completedBtn);
+    actions.appendChild(delBtn);
+
+    if(task.completed) li.classList.add("completed");
+    
+    li.appendChild(textDiv);
+    li.appendChild(actions);
+    taskList.appendChild(li);
+}
+
+
+    function loadTasks(){
+        taskList.innerHTML = "";
+        tasks.forEach(task => {renderTask(task)
+            scheduleNotification(task);
+        });
+    }
+    window.onload = loadTasks;
+
+       
