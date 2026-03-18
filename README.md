@@ -88,13 +88,18 @@ node notifier.js
 ## Screenshots
 
 ### Login Page
-![Login Page](screenshots/login.png)
+![Login Page]
+<img width="1916" height="924" alt="image" src="https://github.com/user-attachments/assets/e19b2c4b-d2cc-48f0-add9-bcac0312078d" />
+
 
 ### Task Dashboard
 ![Dashboard](screenshots/dashboard.png)
+<img width="1918" height="924" alt="image" src="https://github.com/user-attachments/assets/c16363c0-d640-4f1f-9aa7-b76286ac0a65" />
 
 ### Notification Example
 ![Notification](screenshots/notification.png)
+<img width="1919" height="909" alt="image" src="https://github.com/user-attachments/assets/78f2efe9-4dbb-4ec9-be80-c909f15a6d43" />
+
 
 ## 👨‍💻 Author
 
