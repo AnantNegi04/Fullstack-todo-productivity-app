@@ -1,25 +1,28 @@
-// server.js — final with push scheduler (scheduled_at DATETIME local format)
 require("dotenv").config();
+
 const express = require("express");
 const mysql = require("mysql2");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-const bodyParser = require("body-parser");
+
 const webPush = require("web-push");
 const path = require("path");
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGIN || "http://localhost:3000"
+}));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ---------- CONFIG ----------
 const JWT_SECRET = process.env.JWT_SECRET;
 const API_PORT = process.env.PORT || 3000;
+
 // ---------- START SERVER ----------
 app.listen(API_PORT, () => 
-  {console.log(`🚀 Server running on http://localhost:${API_PORT}`);
+  {console.log(` Server running on http://localhost:${API_PORT}`);
 });
 
 const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY;
