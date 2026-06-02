@@ -9,6 +9,44 @@ const cors = require("cors");
 const webPush = require("web-push");
 const path = require("path");
 
+//validate all environment variables are present or not
+function validateEnv() {
+  //Server cannot function at all without these(mandatory)
+  const critical = [
+    "JWT_SECRET",
+    "VAPID_PUBLIC_KEY",
+    "VAPID_PRIVATE_KEY",
+    "VAPID_EMAIL"
+  ];
+
+  //server runs in limited mode without these
+  const expected = [
+    "DB_HOST",
+    "DB_USER",
+    "DB_PASSWORD",
+    "DB_NAME"
+  ];
+
+  //check critical first
+  const missingCritical = critical.filter(key => !process.env[key]);
+  if (missingCritical.length > 0) {
+    console.error("Missing critical environment variables - cancel start:");
+    missingCritical.forEach(key => console.error(`  -${key}`));
+    process.exit(1);
+  }
+
+  //check expected -warn but don't exit
+  const missingExpected = expected.filter(key => !process.env[key]);
+  if (missingExpected.length > 0) {
+    console.warn("Missing database variables - running with limited functionality");
+    missingExpected.forEach(key => console.warn(` -${key}`));
+  }
+
+  console.log("Environment validated");
+}
+
+validateEnv();
+
 const app = express();
 app.use(cors({
   origin: process.env.ALLOWED_ORIGIN || "http://localhost:3000"
@@ -50,7 +88,7 @@ app.get("/service-worker.js", (req, res) => {
 
 //Splash screen as entry point
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", splash.html));
+  res.sendFile(path.join(__dirname, "..", "splash.html"));
 })
 
 
