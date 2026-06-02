@@ -28,27 +28,33 @@ app.listen(API_PORT, () =>
 const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
 const VAPID_EMAIL = process.env.VAPID_EMAIL;
-console.log("VAPID EMAIL:", process.env.VAPID_EMAIL);
-webPush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC, VAPID_PRIVATE);
 
+webPush.setVapidDetails(
+  `mailto:${VAPID_EMAIL}`,
+  VAPID_PUBLIC, 
+  VAPID_PRIVATE
+);
+
+//expose public key to browser
 app.get("/vapid-public-key", (req, res) => {
   res.send(process.env.VAPID_PUBLIC_KEY);
 });
 
-app.get("/service-worker.js", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "service-worker.js"));
-});
 
-// ---------- Serve frontend & SW ----------
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "..", "splash.html")));
-
-// serve service-worker explicitly (important)
+// Service worker rout - explicit MIME type is required
+//browsers reject service workers with wrong Content-type
 app.get("/service-worker.js", (req, res) => {
   res.setHeader("Content-Type", "application/javascript");
   res.sendFile(path.join(__dirname, "..", "service-worker.js"));
 });
 
-// static files (point to FrontEnd)
+//Splash screen as entry point
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", splash.html));
+})
+
+
+// Serve all other frontend files (css, js, html, assets)
 app.use(express.static(path.join(__dirname, "..")));
 
 // ---------- DB ----------
