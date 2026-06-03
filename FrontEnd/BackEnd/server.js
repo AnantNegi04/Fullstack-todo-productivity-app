@@ -45,8 +45,6 @@ function validateEnv() {
   console.log("Environment validated");
 }
 
-validateEnv();
-
 const app = express();
 app.use(cors({
   origin: process.env.ALLOWED_ORIGIN || "http://localhost:3000"
@@ -59,9 +57,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const API_PORT = process.env.PORT || 3000;
 
 // ---------- START SERVER ----------
-app.listen(API_PORT, () => 
-  {console.log(` Server running on http://localhost:${API_PORT}`);
-});
 
 const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
@@ -78,7 +73,6 @@ app.get("/vapid-public-key", (req, res) => {
   res.send(process.env.VAPID_PUBLIC_KEY);
 });
 
-
 // Service worker rout - explicit MIME type is required
 //browsers reject service workers with wrong Content-type
 app.get("/service-worker.js", (req, res) => {
@@ -89,32 +83,41 @@ app.get("/service-worker.js", (req, res) => {
 //Splash screen as entry point
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "splash.html"));
-})
-
+});
 
 // Serve all other frontend files (css, js, html, assets)
 app.use(express.static(path.join(__dirname, "..")));
 
 // ---------- DB ----------
 
-let db;
-try{
-  db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    dateStrings: true
-  });
+let db = null;
 
-  db.connect(err => {
-    if (err) {
-      console.log("Database connection failed. Running without DB");
-      db = null;
-    } else {
-      console.log("Database connected");
+async function initDatabase() {
+  const dbVars = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME"];
+  const missing = dbVars.filter(k => !process.env[k]);
+  if (missing.length > 0) {
+    console.warn("Database config missing - running without database");
+    return;
+  }
 
-      const createPushTable = `
+  try {
+    db = mysql.createPool({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      dateStrings: true,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0
+    });
+
+    //Verify connection actually works 
+    await db.promise().query("SELECT 1");
+    console.log("Database connected");
+
+    //Create tables if they don't exist
+    await db.promise().query(`
       CREATE TABLE IF NOT EXISTS push_subscriptions (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
@@ -124,18 +127,28 @@ try{
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         UNIQUE KEY ux_user_endpoint (user_id(10), endpoint(255))
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-      `;
-
-      db.query(createPushTable, (e) => {
-        if (e) console.error("Error creating push_subscriptions table:", e);
-      });
-    }
-  });
-
-} catch (error) {
-  console.log("Database skipped during deployment");
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      `);
+      console.log("Tables verified");
+  } catch (err) {
+    console.error("Database connection failed:", err.message);
+    db = null;
+  }
 }
+
+//-----Server start-----------------------
+
+async function startServer() {
+  validateEnv();
+  await initDatabase();
+  app.listen(API_PORT, () => {
+    console.log(`Server running on http://localhost:${API_PORT}`);
+    console.log(`Origin: ${process.env.ALLOWED_ORIGIN || "http://localhost:3000"}`);
+  });
+}
+
+startServer();
+
 // ---------- Auth middleware ----------
 function verifyToken(req, res, next) {
   const header = req.headers["authorization"];
