@@ -153,12 +153,18 @@ startServer();
 function verifyToken(req, res, next) {
   const header = req.headers["authorization"];
   const token = header && header.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "No token" });
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: "Invalid token" });
+
+  if (!token) {
+    return res.status(401).json({message: "No token provided"});
+  }
+
+  try {
+    const user = jwt.verify(token, JWT_SECRET);
     req.user = user;
     next();
-  });
+  } catch (err) {
+    return res.status(403).json({message: "Invalid or expired token"});
+  }
 }
 
 // ---------- AUTH routes (signup/login) - same as before ----------
