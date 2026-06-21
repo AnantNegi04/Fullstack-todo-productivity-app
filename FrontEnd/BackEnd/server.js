@@ -171,13 +171,22 @@ function verifyToken(req, res, next) {
 app.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    if (!username || !email || !password) return res.status(400).json({ message: "All fields required" });
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields required" });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
-    db.query("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", [username, email, hashed], (err) => {
-      if (err) return res.status(500).json({ message: "Error creating user" });
+    await db.promise().query("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", [username, email, hashed]);
+      
       res.status(201).json({ message: "User created" });
-    });
+    
   } catch (err) {
+
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({message: "Email already exist "})
+    }
+    console.error("Signup error", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });
