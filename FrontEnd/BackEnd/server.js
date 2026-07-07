@@ -191,18 +191,43 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-app.post("/login", (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) return res.status(400).json({ message: "Email + password required" });
-  db.query("SELECT * FROM users WHERE email = ?", [email], async (err, rows) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-    if (!rows.length) return res.status(400).json({ message: "Invalid credentials" });
-    const user = rows[0];
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({message: "Email and password are required"});
+    }
+
+    const [row] = await db.promise().query(
+      "SELECT * FROM users WHERE email = ?", [email]
+    );
+
+    if (!row.length) {
+      return res.status(401).json({message: "Invaid credentials"});
+    }
+
+    const user = row[0];
     const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "12h" });
-    res.json({ message: "Login successful", token, user: { id: user.id, username: user.username, email: user.email } });
-  });
+    
+    if (!ok) {
+      return res.status(401).json({message: "Invalid credentials"});
+    }
+
+    const token = jwt.sign(
+      {id: user.id, username: user.username},
+      JWT_SECRET, 
+      {expiresIn: "12h"}
+    );
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: { id: user.id, username: user.username, email: user.email }
+    });
+  } catch (err) {
+    console.error("Login error:", err.message);
+    res.status(500).json({message: "Server error"});
+  }
 });
 
 // ---------- TASKS routes (scheduled_at DATETIME) ----------
