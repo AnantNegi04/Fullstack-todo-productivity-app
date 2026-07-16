@@ -203,7 +203,7 @@ app.post("/login", async (req, res) => {
     );
 
     if (!row.length) {
-      return res.status(401).json({message: "Invaid credentials"});
+      return res.status(401).json({message: "Invalid credentials"});
     }
 
     const user = row[0];
@@ -238,100 +238,138 @@ app.get("/tasks", verifyToken, (req, res) => {
   });
 });
 
-app.post("/tasks", verifyToken, (req, res) => {
-  const userId = req.user.id;
-  const { text, scheduled_at, priority } = req.body;
-  if (!text) return res.status(400).json({ message: "Task text required" });
-  if (!scheduled_at) return res.status(400).json({ message: "scheduled_at required" });
+app.post("/tasks", verifyToken, async (req, res) => {
+  try{
+    const {text, scheduled_at, priority} = req.body;
+    if (!text) return res.status(400).json({message: "Task text required"});
+    if (!scheduled_at) return res.status(400).json({message: "scheduled_at required"});
 
-  let sched = String(scheduled_at).replace("T", " ");
-  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(sched)) sched = sched + ":00";
+    let sched = String(scheduled_at).replace("T", " ");
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(sched)) sched = sched + ":00";
 
-  const insertQ = "INSERT INTO tasks (user_id, text, scheduled_at, priority, completed) VALUES (?, ?, ?, ?, 0)";
-  db.query(insertQ, [userId, text, sched, priority || "low"], (err, result) => {
-    if (err) return res.status(500).json({ message: "Error adding task" });
-    db.query("SELECT * FROM tasks WHERE id = ?", [result.insertId], (e, rows) => {
-      if (e) return res.status(201).json({ message: "Task added" });
-      res.status(201).json(rows[0]);
-    });
-  });
+    const [result] = await db.promise().query(
+      "INSERT INTO tasks (user_id, text, scheduled_at, priority, completed) VALUES (?, ?, ?, ?, 0)",
+      [req.user.id, text, sched, priority || "low"]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({message: "Task not found"});
+    }
+    
+    res.json({message: "Deleted"});
+
+    const [rows] = await db.promise().query(
+      "SELECT * FROM tasks WHERE id = ?",
+      [result.insertId]
+    );
+
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error("Add task error:", err.message);
+    res.status(500).json({message : "Error adding task"});
+  }
 });
 
-app.put("/tasks/:id", verifyToken, (req, res) => {
-  const taskId = req.params.id;
-  const userId = req.user.id;
-  const { text, scheduled_at, priority } = req.body;
-  let sched = scheduled_at ? String(scheduled_at).replace("T", " ") : null;
-  if (sched && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(sched)) sched = sched + ":00";
+app.put("/tasks/:id", verifyToken, async (req, res) => {
+  try {
+    const taskId = req.params.id;
+    const userId = req.user.id;
+    const { text, scheduled_at, priority } = req.body;
+    let sched = scheduled_at ? String(scheduled_at).replace("T", " ") : null;
+    if (sched && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(sched)) sched = sched + ":00";
 
-  const q = "UPDATE tasks SET text = ?, scheduled_at = ?, priority = ? WHERE id = ? AND user_id = ?";
-  db.query(q, [text, sched, priority, taskId, userId], (err) => {
-    if (err) return res.status(500).json({ message: "Update failed" });
-    res.json({ message: "Task updated" });
-  });
+    const q = await db.promise().query(
+      "UPDATE tasks SET text = ?, scheduled_at = ?, priority = ? WHERE id = ? AND user_id = ?", 
+      [text, sched, priority, taskId, userId]
+    );
+
+    res.json({message: "Task updated"});
+  } catch (err) {
+    return res.status(500).json({message: "Error while updating tasks"});
+  }
 });
 
-app.put("/tasks/:id/toggle", verifyToken, (req, res) => {
-  const userId = req.user.id;
-  const id = req.params.id;
-  db.query("UPDATE tasks SET completed = NOT completed WHERE id = ? AND user_id = ?", [id, userId], (err) => {
-    if (err) return res.status(500).json({ message: "Toggle failed" });
-    res.json({ message: "Toggled" });
-  });
+app.put("/tasks/:id/toggle", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const id = req.params.id;
+
+    const q = await db.promise().query("UPDATE tasks SET completed = NOT completed WHERE id = ? AND user_id = ?",
+      [id, userId]
+    );
+
+    res.json({message: "Toggled"});
+  } catch (err) {
+    return res.status(500).json({message : "Toggle failed"});
+  }
 });
 
-app.delete("/tasks/:id", verifyToken, (req, res) => {
-  const userId = req.user.id;
-  const id = req.params.id;
-  db.query("DELETE FROM tasks WHERE id = ? AND user_id = ?", [id, userId], (err) => {
-    if (err) return res.status(500).json({ message: "Delete failed" });
-    res.json({ message: "Deleted" });
-  });
+app.delete("/tasks/:id", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const id = req.params.id;
+
+    const q = await db.promise().query("DELETE FROM tasks WHERE id = ? AND user_id = ?", 
+      [id, userId]
+    );
+
+    res.json({message: "Deleted"});
+
+  } catch (err) {
+    return res.status(500).json({ message: "Delete failed" });
+  }
 });
 
-app.put("/tasks/:id/snooze", verifyToken, (req, res) => {
-  const { snooze_until } = req.body;
-  const id = req.params.id;
-  const userId = req.user.id;
-  if (!snooze_until) return res.status(400).json({ message: "snooze_until required" });
-  let s = String(snooze_until).replace("T", " ");
-  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s)) s = s + ":00";
-  db.query("UPDATE tasks SET snooze_until = ?, last_notified_at = NULL WHERE id = ? AND user_id = ?", [s, id, userId], (err) => {
-    if (err) return res.status(500).json({ message: "Snooze failed" });
+app.put("/tasks/:id/snooze", verifyToken, async (req, res) => {
+  try {
+    const { snooze_until } = req.body;
+    const id = req.params.id;
+    const userId = req.user.id;
+    
+    if (!snooze_until) return res.status(400).json({ message: "snooze_until required" });
+    let s = String(snooze_until).replace("T", " ");
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s)) s = s + ":00";
+
+    const q = await db.promise().query("UPDATE tasks SET snooze_until = ?, last_notified_at = NULL WHERE id = ? AND user_id = ?",
+      [s, id, userId]
+    );
+
     res.json({ message: "Snoozed" });
-  });
+  } catch (err) {
+    return res.status(500).json({ message: "Snooze failed" });
+  }
 });
 
 // Stop notifications for a task
-app.put("/tasks/:id/stop", verifyToken, (req, res) => {
-  const taskId = req.params.id;
-  const userId = req.user.id;
+app.put("/tasks/:id/stop", verifyToken, async (req, res) => {
+  try {
+    const taskId = req.params.id;
+    const userId = req.user.id;
 
-  db.query(
-    "UPDATE tasks SET notifications_paused = 1 WHERE id = ? AND user_id = ?",
-    [taskId, userId],
-    (err) => {
-      if (err) {
-        console.error("❌ Stop Notification SQL error:", err);
-        return res.status(500).json({ message: "Database error" });
-      }
-      console.log(`🔕 Notifications stopped for task ${taskId}`);
-      res.json({ message: "Notifications stopped" });
-    }
-  );
+    const q = await db.promise().query("UPDATE tasks SET notifications_paused = 1 WHERE id = ? AND user_id = ?",
+      [taskId, userId]
+    );
+
+    console.log(`🔕 Notifications stopped for task ${taskId}`);
+    res.json({ message: "Notifications stopped" });
+  } catch (err) {
+    console.error("❌ Stop Notification SQL error:", err);
+    return res.status(500).json({ message: "Database error" });
+  }
 });
 
 // ---------- SUBSCRIBE endpoint: save subscription to DB ----------
-app.post("/subscribe", verifyToken, (req, res) => {
-  const userId = req.user.id;
+app.post("/subscribe", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-  const { endpoint, keys } = req.body;
+    const { endpoint, keys } = req.body;
 
-  if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
-    return res.status(400).json({ message: "Invalid subscription format" });
-  }
+    if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
+      return res.status(400).json({ message: "Invalid subscription format" });
+    }
 
-  const sql = `
+    const sql = `
     INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
     VALUES (?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
@@ -339,27 +377,38 @@ app.post("/subscribe", verifyToken, (req, res) => {
       auth = VALUES(auth)
   `;
 
-  db.query(sql, [userId, endpoint, keys.p256dh, keys.auth], (err) => {
-    if (err) {
-      console.error("❌ Subscription Save Error:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
+    const q = await db.promise().query(sql, [userId, endpoint, keys.p256dh, keys.auth]);
     res.status(201).json({ message: "Subscription saved" });
-  });
+
+  } catch (err) {
+    console.error("❌ Subscription Save Error:", err);
+    return res.status(500).json({ message: "Database error" });
+  }
 });
 
 // ---------- PUSH SEND (test endpoint) ----------
-app.post("/push/send", (req, res) => {
-  const { endpoint, keys, payload } = req.body;
-  if (!endpoint || !keys) return res.status(400).json({ message: "Invalid" });
-  const pushSubscription = { endpoint, keys: { p256dh: keys.p256dh, auth: keys.auth } };
+app.post("/push/send", async (req, res) => {
+  try {
+    const { endpoint, keys, payload } = req.body;
+    if (!endpoint || !keys) {
+      return res.status(400).json({ message: "Invalid" });
+    }
 
-  webPush.sendNotification(pushSubscription, JSON.stringify(payload || { title: "Test", body: "Hello" }))
-    .then(() => res.json({ ok: true }))
-    .catch((err) => {
-      console.error("web-push error:", err);
+    const pushSubscription = { 
+      endpoint, 
+      keys: { p256dh: keys.p256dh, auth: keys.auth } 
+    };
+
+    await webPush.sendNotification(
+      pushSubscription,
+      JSON.stringify(payload || {title: "Test", body: "Hello"})
+    );
+
+    res.json({ok : true});
+  } catch (err) {
+    console.error("web-push error:", err);
       res.status(500).json({ message: "Push failed", err: String(err) });
-    });
+  }
 });
 
 // ---------- SCHEDULER: run every 30s and send due notifications ----------
