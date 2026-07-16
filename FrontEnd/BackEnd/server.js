@@ -252,12 +252,6 @@ app.post("/tasks", verifyToken, async (req, res) => {
       [req.user.id, text, sched, priority || "low"]
     );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({message: "Task not found"});
-    }
-    
-    res.json({message: "Deleted"});
-
     const [rows] = await db.promise().query(
       "SELECT * FROM tasks WHERE id = ?",
       [result.insertId]
