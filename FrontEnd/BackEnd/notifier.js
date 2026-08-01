@@ -1,126 +1,117 @@
-// notifier.js
 require("dotenv").config();
 const mysql = require("mysql2");
 const webPush = require("web-push");
 const cron = require("node-cron");
 
-// ===============================
-// DATABASE CONNECTION
-// ===============================
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
-});
-
-db.connect((err) => {
-  if (err) console.error("❌ MySQL connection error:", err);
-  else console.log("✅ Connected to MySQL for notifier");
-});
-
-// ===============================
-// WEB PUSH CONFIG
-// ===============================
+//--------VAPID SETUP------------------------ 
 webPush.setVapidDetails(
-  process.env.VAPID_EMAIL,
-  process.env.VAPID_PUBLIC_KEY, // your public VAPID key
-  process.env.VAPID_PRIVATE_KEY // your private VAPID key
+  `mailto:${process.env.VAPID_EMAIL}`,
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
 );
 
-// ===============================
-// CRON JOB: Check Every Minute
-// ===============================
+//---------Database---------------------------
+let db = null;
 
-function formatLocalDateTime(date) {
-  const pad = (n) => String(n).padStart(2, "0");
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
-       + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+async function initDatabase() {
+  const required = ["DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME"];
+  const missing = required.filter(k => !process.env[k]);
+  if (missing.lenght > 0) {
+    console.error("missing DB config:", missing);
+    process.exit(1);
+  }
 }
 
-cron.schedule("* * * * *", () => {
-  const now = new Date();
-  
-  const start = new Date(now.getTime() - 30 * 1000);
-  const end = new Date(now.getTime() + 30 * 1000);
+try {
+  db = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    dateStrings: true,
+    waitForConnections: true,
+    connectionLimit: 5,
+    queueLimit: 0
+  });
 
-  const startStr = formatLocalDateTime(start);
-  const endStr = formatLocalDateTime(end);
+  await db.promise().query("SELECT 1");
+  console.log("Notifier connected to database");
+} catch (err) {
+  console.error("Databse conenction failed:", err.message);
+  process.exit(1);
+}
 
-  console.log("Current Time:", now.toString());
-  console.log(`⏰ Checking for due tasks at ${now.toLocaleString()}`);
-  console.log(`🔍 Range: ${startStr} → ${endStr}`);
+//-------Scheduler------------------------------------
 
-  const query = `
-    SELECT t.*, s.endpoint, s.p256dh, s.auth
-    FROM tasks t
-    JOIN push_subscriptions s ON t.user_id = s.user_id
-    WHERE t.completed = 0
-      AND t.notifications_paused = 0
-      AND (
-        (t.snooze_until IS NULL AND CONCAT(t.date, ' ', t.time) BETWEEN ? AND ?)
-        OR (t.snooze_until IS NOT NULL AND t.snooze_until BETWEEN ? AND ?)
-      )
-      AND (t.last_notified_at IS NULL OR TIMESTAMPDIFF(MINUTE, t.last_notified_at, NOW()) >= 2);
-  `;
+function startScheduler() {
+  cron.schedule("* * * * *", async () => {
+    try {
+      const [tasks] = await db.promise().query(`
+        SELECT t.*, s.endpoint, s.p256dh, s.auth, s.id AS sub_id
+        FROM tasks t
+        JOIN push_subscriptions s ON t.user_id = s.user_id
+        WHERE t.complete = 0
+          AND t.notifications_paused = 0
+          AND (
+            (t.snooze_until IS NULL AND CONCAT(t.date, ' ', t.time) BETWEEN 
+            DATE_SUB(NOW(), INTERVAL 30 SECOND) AND DATE_ADD(NOW(), INTERVAL 30 SECOND))
+            OR
+            (t.snooze_until IS NOT NULL AND t.snooze_until BETWEEN
+            DATE_SUB(NOW(), INTERVAL 30 SECOND) AND  DATE_ADD(NOW(), INTERVAL 30 SECOND))
+          )
+          AND (t.last_notified_at IS NULL OR TIMESTAMPDIFF(MINTURE, t.last_notified_at, NOW()) >= 2) 
+      `);
 
-  db.query(query, [startStr, endStr, startStr, endStr], async (err, results) => {
-    if (err) {
-      console.error("❌ Query error:", err);
-      return;
-    }
+      if (!tasks.length) return;
+      
+      console.log(`${tasks.length} dure task(s) found`);
 
-    if (!results || results.length === 0) {
-      console.log("No due tasks found this minute.");
-      console.log("--------------------------------------------------");
-      return;
-    }
+      for (const task of tasks) {
+        try {
+          await webPush.sendNotification(
+            {
+              endpoint: task.endpoint,
+              keys: {p256dh: task.p256dh, auth: task.auth}
+            },
+            JSON.stringify({
+              title: "Task Reminder",
+              body: `${task.text} is due now!`,
+              data: { taskId: task.id }
+            })
+          );
 
-    // Prevent duplicates per run
-    const notifiedIds = new Set();
+          await db.promise().query(
+            "UPDATE tasks SET last_notified_at = NOW() WHERE id = ?",
+            [task.id]
+          );
 
-    console.log(`📋 Found ${results.length} possible due task(s)`);
+          console.log(`Notified task ${task.id}`);
 
-    for (const task of results) {
-      if (notifiedIds.has(task.id)) continue;
-      notifiedIds.add(task.id);
-
-      const payload = JSON.stringify({
-        title: "⏰ Task Reminder",
-        body: `${task.text} is due now!`,
-        actions: [
-          { action: "snooze", title: "Snooze 10 min" },
-          { action: "stop", title: "Stop Notifications" },
-        ],
-      });
-
-      const pushSubscription = {
-        endpoint: task.endpoint,
-        keys: { p256dh: task.p256dh, auth: task.auth },
-      };
-
-      try {
-        await webPush.sendNotification(pushSubscription, payload);
-        console.log(`✅ Notification sent for task ID ${task.id} (${task.text})`);
-
-        db.query(
-          "UPDATE tasks SET last_notified_at = NOW() WHERE id = ?",
-          [task.id],
-          (err2) => {
-            if (err2) console.error("⚠️ Could not update last_notified_at:", err2);
+        } catch (pushErr) {
+          if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+            console.warn(`Stale subscription, removing`);
+            await db.promise().query(
+              "DELETE FROM push_subscriptions WHERE id = ?",
+              [task.sub.id]
+            );
+          } else {
+            console.error(`Push failed for ${task.id}:`, pushErr.message);
           }
-        );
-      } catch (err) {
-        if (err.statusCode === 410 || err.statusCode === 404) {
-          console.warn("⚠️ Invalid subscription, removing:", task.endpoint);
-          db.query("DELETE FROM push_subscriptions WHERE endpoint = ?", [task.endpoint]);
-        } else {
-          console.error("🚨 Push send error:", err.message);
         }
       }
+    } catch (err) {
+      console.error("Schedule error:", err.message);
     }
-
-    console.log("--------------------------------------------------");
   });
-});
+
+  console.log("Notification scheduler started");
+}
+
+//------------ENTRY POINT------------------------------
+
+async function start() {
+  await initDatabase();
+  startScheduler;
+}
+
+start();
