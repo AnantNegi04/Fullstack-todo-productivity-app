@@ -45,6 +45,7 @@ async function initDatabase() {
 // ─── SCHEDULER ──────────────────────────────────────────
 function startScheduler() {
   cron.schedule("* * * * *", async () => {
+    console.log("Scheduler tick:", new Date().toLocaleTimeString());
     try {
       const [tasks] = await db.promise().query(`
         SELECT t.*, s.endpoint, s.p256dh, s.auth, s.id AS sub_id
@@ -53,8 +54,9 @@ function startScheduler() {
         WHERE t.completed = 0
           AND t.notifications_paused = 0
           AND (
-            (t.snooze_until IS NULL AND CONCAT(t.date, ' ', t.time) BETWEEN
-              DATE_SUB(NOW(), INTERVAL 30 SECOND) AND DATE_ADD(NOW(), INTERVAL 30 SECOND))
+            (t.snooze_until IS NULL AND t.scheduled_at BETWEEN 
+              DATE_SUB(NOW(), INTERVAL 30 SECOND) 
+              AND DATE_ADD(NOW(), INTERVAL 30 SECOND))
             OR
             (t.snooze_until IS NOT NULL AND t.snooze_until BETWEEN
               DATE_SUB(NOW(), INTERVAL 30 SECOND) AND DATE_ADD(NOW(), INTERVAL 30 SECOND))
