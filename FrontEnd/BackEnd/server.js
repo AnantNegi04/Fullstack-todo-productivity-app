@@ -272,10 +272,14 @@ app.put("/tasks/:id", verifyToken, async (req, res) => {
     let sched = scheduled_at ? String(scheduled_at).replace("T", " ") : null;
     if (sched && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(sched)) sched = sched + ":00";
 
-    const q = await db.promise().query(
+    const [result] = await db.promise().query(
       "UPDATE tasks SET text = ?, scheduled_at = ?, priority = ? WHERE id = ? AND user_id = ?", 
       [text, sched, priority, taskId, userId]
     );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({message: "Object not found"})
+    }
 
     res.json({message: "Task updated"});
   } catch (err) {
@@ -288,9 +292,13 @@ app.put("/tasks/:id/toggle", verifyToken, async (req, res) => {
     const userId = req.user.id;
     const id = req.params.id;
 
-    const q = await db.promise().query("UPDATE tasks SET completed = NOT completed WHERE id = ? AND user_id = ?",
+    const [result] = await db.promise().query("UPDATE tasks SET completed = NOT completed WHERE id = ? AND user_id = ?",
       [id, userId]
     );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({message: "Object not found"});
+    }
 
     res.json({message: "Toggled"});
   } catch (err) {
@@ -303,11 +311,14 @@ app.delete("/tasks/:id", verifyToken, async (req, res) => {
     const userId = req.user.id;
     const id = req.params.id;
 
-    const q = await db.promise().query("DELETE FROM tasks WHERE id = ? AND user_id = ?", 
+    const [result] = await db.promise().query("DELETE FROM tasks WHERE id = ? AND user_id = ?", 
       [id, userId]
     );
 
-    res.json({message: "Deleted"});
+    if (result.affectedRows === 0) {
+      return res.status(404).json({message: "Object not found"});
+    } 
+      res.status(200).json({message: "Deleted"});
 
   } catch (err) {
     return res.status(500).json({ message: "Delete failed" });
@@ -324,9 +335,13 @@ app.put("/tasks/:id/snooze", verifyToken, async (req, res) => {
     let s = String(snooze_until).replace("T", " ");
     if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s)) s = s + ":00";
 
-    const q = await db.promise().query("UPDATE tasks SET snooze_until = ?, last_notified_at = NULL WHERE id = ? AND user_id = ?",
+    const [result] = await db.promise().query("UPDATE tasks SET snooze_until = ?, last_notified_at = NULL WHERE id = ? AND user_id = ?",
       [s, id, userId]
     );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({message: "Object not found"});
+    }
 
     res.json({ message: "Snoozed" });
   } catch (err) {
@@ -340,9 +355,13 @@ app.put("/tasks/:id/stop", verifyToken, async (req, res) => {
     const taskId = req.params.id;
     const userId = req.user.id;
 
-    const q = await db.promise().query("UPDATE tasks SET notifications_paused = 1 WHERE id = ? AND user_id = ?",
+    const [result] = await db.promise().query("UPDATE tasks SET notifications_paused = 1 WHERE id = ? AND user_id = ?",
       [taskId, userId]
     );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({message: "Object not found"});
+    }
 
     console.log(`🔕 Notifications stopped for task ${taskId}`);
     res.json({ message: "Notifications stopped" });
