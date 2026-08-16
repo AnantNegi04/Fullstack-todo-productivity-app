@@ -126,7 +126,7 @@ async function initDatabase() {
         auth TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY ux_user_endpoint (user_id(10), endpoint(255))
+        UNIQUE KEY ux_user_endpoint (user_id, endpoint(255))
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
       `);
       console.log("Tables verified");
