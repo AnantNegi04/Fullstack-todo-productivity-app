@@ -1,0 +1,36 @@
+$kind: http-request
+name: No_endpoint_subscription
+url: "{{base_url}}/subscribe"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"endpoint\": \"\",\r
+
+    \    \"expirationTime\": null,\r
+
+    \    \"keys\": {\"p256dh\": \"BDXjZyqu_ydHBXJCuGPlWukuXeAAD16xxt0ZbopNowcNF_HhcNeyr1PmlSDwD1Idd_BhowJxMP2vN0srHPOLOjQ\",\r
+
+    \    \"auth\": \"Q9zuWrDF1UUU5mIWDonF_A\"\r
+
+    \    },\r
+
+    \    \"p256dh\": \"BDXjZyqu_ydHBXJCuGPlWukuXeAAD16xxt0ZbopNowcNF_HhcNeyr1PmlSDwD1Idd_BhowJxMP2vN0srHPOLOjQ\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 400\", function () {\r
+
+      \    pm.response.to.have.status(400);\r
+
+      \    console.log(pm.response.json());\r
+
+      });"
+    language: text/javascript
+order: 1797

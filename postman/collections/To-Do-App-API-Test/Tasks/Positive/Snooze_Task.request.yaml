@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{base_url}}/tasks/{{task_id}}/snooze"
+method: PUT
+body:
+  type: json
+  content: |-
+    {
+      "snooze_until": "{{task_status}}"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Task notification should be snoozed", function() {
+          pm.response.to.have.status(200);
+          pm.expect(pm.response.json().message).to.eql("Snoozed");
+      });
+    language: text/javascript
+order: 4492691521780547

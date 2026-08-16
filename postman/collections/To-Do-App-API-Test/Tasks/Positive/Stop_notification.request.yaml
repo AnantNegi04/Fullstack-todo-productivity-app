@@ -1,0 +1,72 @@
+$kind: http-request
+url: "{{base_url}}/tasks/{{task_id}}/stop"
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Task notification stopped response status\", function () {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      });\r
+
+      \r
+
+      \    const baseUrl = pm.environment.get(\"base_url\");\r
+
+      \    const taskId = pm.environment.get(\"task_id\");\r
+
+      \    const token = pm.environment.get(\"token_owner\");\r
+
+      \r
+
+      \    const requestOptions = {\r
+
+      \        method: 'GET',\r
+
+      \        url : `${baseUrl}/tasks`,\r
+
+      \        header : {\r
+
+      \            Authorization : `Bearer ${token}`\r
+
+      \        }\r
+
+      \    }\r
+
+      \r
+
+      pm.sendRequest(requestOptions, function (err, response) {\r
+
+      \    if (err) {\r
+
+      \        console.error(\"Inner GET failed to complete:\", err);\r
+
+      \            pm.test(\"Notifications should be stopped\", function() {\r
+
+      \                pm.expect.fail(\"Verification request errored\" + err);\r
+
+      \            });\r
+
+      \            return;\r
+
+      \        }\r
+
+      \r
+
+      \    const tasks = response.json();\r
+
+      \    const task = tasks.find(t => t.id == taskId);\r
+
+      \    pm.test(\"Notifications should be stopped\", function () {\r
+
+      \        pm.expect(task.notifications_paused).to.be.equal(1);\r
+
+      \    });\r
+
+      });\r\n"
+    language: text/javascript
+order: 4498002070707332

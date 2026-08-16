@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base_url}}/tasks/{{task_id}}"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: afterResponse
+    code: "if (pm.response.code === 200) {\r
+
+      \    console.log(pm.response.json());\r
+
+      }"
+    language: text/javascript
+order: 4414207674184534

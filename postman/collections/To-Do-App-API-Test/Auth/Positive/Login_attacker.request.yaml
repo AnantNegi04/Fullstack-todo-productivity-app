@@ -1,0 +1,30 @@
+$kind: http-request
+name: Login_attacker
+description: ""
+url: "{{base_url}}/login"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"email\" : \"attacker@test.com\",\r
+
+    \    \"password\" : \"Password123!\"\r
+
+    }"
+scripts:
+  - type: beforeRequest
+    code: pm.environment.set("who_login", "attacker");
+    language: text/javascript
+  - type: afterResponse
+    code: "if (pm.response.code === 200) {\r
+
+      \    const data = pm.response.json();\r
+
+      \    const role = pm.environment.get(\"who_login\");\r
+
+      \    pm.environment.set(\"token_\" + role, data.token);\r
+
+      }"
+    language: text/javascript
+order: 4374277749758230

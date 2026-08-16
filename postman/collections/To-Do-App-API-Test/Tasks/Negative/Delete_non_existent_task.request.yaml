@@ -1,0 +1,19 @@
+$kind: http-request
+name: Delete_non_existent_task
+url: "{{base_url}}/tasks/99999"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 404\", function() {\r
+
+      \    pm.response.to.have.status(404);\r
+
+      \    console.log(pm.response.json());\r
+
+      });"
+    language: text/javascript
+order: 4500315443118707

@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{base_url}}/tasks/{{task_id}}/toggle"
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: beforeRequest
+    code: ""
+    language: text/javascript
+  - type: afterResponse
+    code: "if (pm.response.code === 200) {\r
+
+      \    const res = pm.response.json();\r
+
+      \    console.log(res.message);\r
+
+      }"
+    language: text/javascript
+order: 4371299860851620

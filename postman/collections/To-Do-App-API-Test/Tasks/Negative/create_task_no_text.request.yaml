@@ -1,0 +1,39 @@
+$kind: http-request
+name: create_task_no_text
+url: "{{base_url}}/tasks"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"text\" : \"\",\r
+
+    \    \"scheduled_at\" : \"2026-08-15 14:00:00\",\r
+
+    \    \"priority\" : \"High\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: beforeRequest
+    code: ""
+    language: text/javascript
+  - type: afterResponse
+    code: "if (pm.response.code === 400) {\r
+
+      \    pm.test(\"Check if the response contains the correct error message\",
+      function () {\r
+
+      \        pm.expect(pm.response.text()).to.include(\"Task text
+      required\");\r
+
+      \        console.log(pm.response.json());\r
+
+      \    });\r
+
+      }"
+    language: text/javascript
+order: 5000

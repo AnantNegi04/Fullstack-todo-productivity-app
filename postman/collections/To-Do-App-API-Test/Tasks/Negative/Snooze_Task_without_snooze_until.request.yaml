@@ -1,0 +1,27 @@
+$kind: http-request
+name: Snooze_Task_without_snooze_until
+url: "{{base_url}}/tasks/{{task_id}}/snooze"
+method: PUT
+body:
+  type: json
+  content: |-
+    {
+      "snooze_until": ""
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: afterResponse
+    code: |
+      pm.test("Status code is 400", function () {
+          pm.response.to.have.status(400);
+      });
+
+      pm.test("Check if the response contains the correct error message", function () {
+          pm.expect(pm.response.text()).to.include("snooze_until required");
+          console.log(pm.response.json());
+      });
+    language: text/javascript
+order: 4496679393858231

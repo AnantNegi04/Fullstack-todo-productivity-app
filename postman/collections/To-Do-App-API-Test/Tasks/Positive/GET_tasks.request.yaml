@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{base_url}}/tasks"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: beforeRequest
+    code: ""
+    language: text/javascript
+order: 2065941245976990

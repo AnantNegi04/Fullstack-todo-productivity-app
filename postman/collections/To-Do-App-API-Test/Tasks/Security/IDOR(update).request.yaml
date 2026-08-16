@@ -1,0 +1,89 @@
+$kind: http-request
+name: IDOR(update)
+description: ""
+url: "{{base_url}}/tasks/{{task_id}}"
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \    \"text\" : \"attacker task\",\r
+
+    \    \"scheduled_at\" : \"2026-08-12 15:00\",\r
+
+    \    \"priority\" : \"medium\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_attacker}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Attacker receives 404, not false success\", function () {\r
+
+      \    pm.expect(pm.response.code).to.equal(404);\r
+
+      });\r
+
+      \r
+
+      \r
+
+      \    const baseUrl = pm.environment.get(\"base_url\");\r
+
+      \    const taskId = pm.environment.get(\"task_id\");\r
+
+      \    const token = pm.environment.get(\"token_owner\");\r
+
+      \r
+
+      \    const requestOptions = {\r
+
+      \        method: 'GET',\r
+
+      \        url : `${baseUrl}/tasks`,\r
+
+      \        header : {\r
+
+      \            Authorization : `Bearer ${token}`\r
+
+      \        }\r
+
+      \    }\r
+
+      \r
+
+      \    pm.sendRequest(requestOptions, function (err, response) {\r
+
+      \        if (err) {\r
+
+      \            console.error(\"Inner GET failed to complete:\", err);\r
+
+      \            pm.test(\"Task text should remain unchanged after attacker update attempt\", function() {\r
+
+      \                pm.expect.fail(\"Verification request errored\" + err);\r
+
+      \            });\r
+
+      \            return;\r
+
+      \        }\r
+
+      \        const taskStored = pm.environment.get(\"task_as_owner\");\r
+
+      \        const taskData = response.json();\r
+
+      \        \r
+
+      \        const responseTask = taskData.find(task => task.id == taskId);\r
+
+      \        pm.test(\"Task text should remain unchanged after attacker update attempt\", () => {\r
+
+      \            pm.expect(taskStored).to.equal(responseTask.text);\r
+
+      \        });\r
+
+      \    });\r\n"
+    language: text/javascript
+order: 2792935798990815

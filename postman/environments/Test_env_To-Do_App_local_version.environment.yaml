@@ -1,0 +1,16 @@
+name: Test_env_To-Do_App_local_version
+values:
+  - key: base_url
+    value: ''
+  - key: task_id
+    value: ''
+  - key: who_login
+    value: ''
+  - key: token_owner
+    secret: true
+  - key: token_attacker
+    secret: true
+  - key: task_as_owner
+    value: ''
+  - key: task_status
+    value: '2025-08-15T10:00'

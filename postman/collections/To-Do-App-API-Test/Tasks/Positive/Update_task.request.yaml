@@ -1,0 +1,40 @@
+$kind: http-request
+name: Update_task
+description: ""
+url: "{{base_url}}/tasks/{{task_id}}"
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \    \"text\" : \"LOL\",\r
+
+    \    \"scheduled_at\" : \"2026-08-12 14:00\",\r
+
+    \    \"priority\" : \"low\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: afterResponse
+    code: "if (pm.response.code === 200) {\r
+
+      \    const data = pm.response.json();\r
+
+      \    pm.environment.set(\"task_as_owner\", \"\");\r
+
+      \    pm.test(\"Task updated successfully\", function () {\r
+
+      \        pm.expect(data.message).to.equal(\"Task updated\");\r
+
+      \    });\r
+
+      }"
+    language: text/javascript
+  - type: beforeRequest
+    code: ""
+    language: text/javascript
+order: 4322195067618559

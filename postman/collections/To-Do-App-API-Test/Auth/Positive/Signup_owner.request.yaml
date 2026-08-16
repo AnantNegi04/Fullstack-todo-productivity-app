@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{base_url}}/signup"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \   \"username\" : \"ownerTest\",\r
+
+    \   \"email\" : \"owner@test.com\",\r
+
+    \   \"password\" : \"Password123!\"\r
+
+    }\r\n"
+order: 1785940720432
