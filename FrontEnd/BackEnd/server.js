@@ -399,30 +399,7 @@ app.post("/subscribe", verifyToken, async (req, res) => {
   }
 });
 
-// ---------- PUSH SEND (test endpoint) ----------
-app.post("/push/send", async (req, res) => {
-  try {
-    const { endpoint, keys, payload } = req.body;
-    if (!endpoint || !keys) {
-      return res.status(400).json({ message: "Invalid" });
-    }
 
-    const pushSubscription = { 
-      endpoint, 
-      keys: { p256dh: keys.p256dh, auth: keys.auth } 
-    };
-
-    await webPush.sendNotification(
-      pushSubscription,
-      JSON.stringify(payload || {title: "Test", body: "Hello"})
-    );
-
-    res.json({ok : true});
-  } catch (err) {
-    console.error("web-push error:", err);
-      res.status(500).json({ message: "Push failed", err: String(err) });
-  }
-});
 
 
 
