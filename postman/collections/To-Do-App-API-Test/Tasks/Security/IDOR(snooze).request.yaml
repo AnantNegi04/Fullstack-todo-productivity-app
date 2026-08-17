@@ -1,0 +1,32 @@
+$kind: http-request
+url: "{{base_url}}/tasks/{{task_id}}/snooze"
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \  \"snooze_until\": \"{{task_status}}\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_attacker}}"
+scripts:
+  - type: beforeRequest
+    code: ""
+    language: text/javascript
+  - type: afterResponse
+    code: "pm.test(\"Attacker receives 404, not false success\", function () {\r
+
+      \    pm.expect(pm.response.code).to.equal(404);\r
+
+      \    console.log(pm.response.json());\r
+
+      });\r
+
+      \r
+
+      \    \r\n"
+    language: text/javascript
+order: 4502926806527449

@@ -1,0 +1,46 @@
+$kind: http-request
+name: No_auth_subscription
+url: "{{base_url}}/subscribe"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"endpoint\":
+    \"https://wns2-pn1p.notify.windows.com/w/?token=BQYAAACMRle3BH3jYkY%2fnu585\
+    LqHhZL63wMNSI1wN1GE%2bxEWug9paFBoVkLqBHzT0CYMN7%2frJFDO%2bJ6GuBTeskmcONuW6%\
+    2b2DoX9lchcDbm6sxIdfak6IRGij2hU4vVz3l3QwOhxruCQ5P9wsHhmQQN%2fVAP1foUCoMoamh\
+    HJZV7lTgdFas7dGiS08emneyKnun5yAgutdHj2r88EvEnAj8ClqB72pNGVcDwlMPrXNm%2bDnc3\
+    X3uzfIil6n%2fJ%2fDRGtJFCpwDg8r9hf3JRS2ZUMe4Mp6SnUO9PeTRDiVho%2beYDDV6QTWXAW\
+    yNEkOSBh0HOQe0PgbKuIxcjdfa962OC%2fzyYr8h7Cd\",\r
+
+    \    \"expirationTime\": null,\r
+
+    \    \"keys\": {\"p256dh\":
+    \"BDXjZyqu_ydHBXJCuGPlWukuXeAAD16xxt0ZbopNowcNF_HhcNeyr1PmlSDwD1Idd_BhowJxM\
+    P2vN0srHPOLOjQ\",\r
+
+    \    \"auth\": \"\"\r
+
+    \    },\r
+
+    \    \"p256dh\":
+    \"BDXjZyqu_ydHBXJCuGPlWukuXeAAD16xxt0ZbopNowcNF_HhcNeyr1PmlSDwD1Idd_BhowJxM\
+    P2vN0srHPOLOjQ\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 400\", function () {\r
+
+      \    pm.response.to.have.status(400);\r
+
+      \    console.log(pm.response.json());\r
+
+      });"
+    language: text/javascript
+order: 2000

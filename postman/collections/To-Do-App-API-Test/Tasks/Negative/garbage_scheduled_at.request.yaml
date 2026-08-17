@@ -1,0 +1,35 @@
+$kind: http-request
+name: garbage_scheduled_at
+url: "{{base_url}}/tasks"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"text\" : \"FixTest\",\r
+
+    \    \"scheduled_at\" : \"noTime\",\r
+
+    \    \"priority\" : \"High\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: beforeRequest
+    code: ""
+    language: text/javascript
+  - type: afterResponse
+    code: "if (pm.response.code === 201) {\r
+
+      \    const data = pm.response.json();\r
+
+      \    pm.environment.set(\"task_id\", data.id);\r
+
+      \    console.log(\"Saved task_id:\", data.id);\r
+
+      }"
+    language: text/javascript
+order: 3000

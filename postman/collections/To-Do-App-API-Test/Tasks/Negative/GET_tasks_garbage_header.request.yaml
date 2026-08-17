@@ -1,0 +1,22 @@
+$kind: http-request
+name: GET_tasks_garbage_header
+url: "{{base_url}}/tasks"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "1234"
+scripts:
+  - type: beforeRequest
+    code: ""
+    language: text/javascript
+  - type: afterResponse
+    code: "pm.test(\"Status code is 403\", function() {\r
+
+      \    pm.response.to.have.status(403);\r
+
+      \    console.log(pm.response.json());\r
+
+      })"
+    language: text/javascript
+order: 2000

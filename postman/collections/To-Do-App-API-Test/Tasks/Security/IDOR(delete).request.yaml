@@ -1,0 +1,76 @@
+$kind: http-request
+name: IDOR(delete)
+description: ""
+url: "{{base_url}}/tasks/{{task_id}}"
+method: DELETE
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_attacker}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Attacker receives 404, not false success\", function () {\r
+
+      \    pm.expect(pm.response.code).to.equal(404);\r
+
+      });\r
+
+      \r
+
+      \    const baseUrl = pm.environment.get(\"base_url\");\r
+
+      \    const ownerToken = pm.environment.get(\"token_owner\");\r
+
+      \    const task_id = Number(pm.environment.get(\"task_id\"));\r
+
+      \    const requestOptions = {\r
+
+      \        method : \"GET\",\r
+
+      \        url : baseUrl + \"/tasks\",\r
+
+      \        header: {\r
+
+      \        \"Authorization\": \"Bearer \" + ownerToken\r
+
+      \        }\r
+
+      \    };\r
+
+      \r
+
+      \    pm.sendRequest(requestOptions, function (err, response) {\r
+
+      \        if (err) {\r
+
+      \            console.error(\"Inner GET failed to complete:\", err);\r
+
+      \            pm.test(\"task deleted successfully\", function() {\r
+
+      \                pm.expect.fail(\"Verification request errored: \" + err);\r
+
+      \            });\r
+
+      \            return;\r
+
+      \        }\r
+
+      \        const res = response.json();\r
+
+      \        pm.test(\"task remains after unauthorized delete attempt(secure)\", function () {\r
+
+      \           pm.expect(res.some(task => task.id === task_id)).to.be.true;\r
+
+      \        });\r
+
+      \    });\r\n"
+    language: text/javascript
+settings:
+  strictSSL: false
+  followRedirects: true
+  disableCookies: false
+  maxResponseSize: 52428800
+order: 4374548265697610

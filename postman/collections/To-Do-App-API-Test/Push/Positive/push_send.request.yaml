@@ -1,0 +1,30 @@
+$kind: http-request
+name: push_send
+url: "{{base_url}}/push/send"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"endpoint\": \"https://wns2-pn1p.notify.windows.com/w/?token=BQYAAACMRle3BH3jYkY%2fnu585LqHhZL63wMNSI1wN1GE%2bxEWug9paFBoVkLqBHzT0CYMN7%2frJFDO%2bJ6GuBTeskmcONuW6%2b2DoX9lchcDbm6sxIdfak6IRGij2hU4vVz3l3QwOhxruCQ5P9wsHhmQQN%2fVAP1foUCoMoamhHJZV7lTgdFas7dGiS08emneyKnun5yAgutdHj2r88EvEnAj8ClqB72pNGVcDwlMPrXNm%2bDnc3X3uzfIil6n%2fJ%2fDRGtJFCpwDg8r9hf3JRS2ZUMe4Mp6SnUO9PeTRDiVho%2beYDDV6QTWXAWyNEkOSBh0HOQe0PgbKuIxcjdfa962OC%2fzyYr8h7Cd\",\r
+
+    \    \"expirationTime\": null,\r
+
+    \    \"keys\": {\"p256dh\": \"BDXjZyqu_ydHBXJCuGPlWukuXeAAD16xxt0ZbopNowcNF_HhcNeyr1PmlSDwD1Idd_BhowJxMP2vN0srHPOLOjQ\",\r
+
+    \    \"auth\": \"Q9zuWrDF1UUU5mIWDonF_A\"\r
+
+    \    },\r
+
+    \    \"p256dh\": \"BDXjZyqu_ydHBXJCuGPlWukuXeAAD16xxt0ZbopNowcNF_HhcNeyr1PmlSDwD1Idd_BhowJxMP2vN0srHPOLOjQ\"\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Push send should require authentication\", function () {\r
+
+      \    pm.expect(pm.response.code).to.not.equal(200);\r
+
+      });"
+    language: text/javascript
+order: 1786776096801

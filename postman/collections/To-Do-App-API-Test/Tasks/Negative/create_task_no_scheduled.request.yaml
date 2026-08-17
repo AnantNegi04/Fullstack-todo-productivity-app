@@ -1,0 +1,37 @@
+$kind: http-request
+name: create_task_no_scheduled
+url: "{{base_url}}/tasks"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"text\" : \"required\",\r
+
+    \    \"scheduled_at\" : \"\",\r
+
+    \    \"priority\" : \"High\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{token_owner}}"
+scripts:
+  - type: beforeRequest
+    code: ""
+    language: text/javascript
+  - type: afterResponse
+    code: "if (pm.response.code === 400) {\r
+
+      \    pm.test(\"Check if the response contains the correct error message\", function () {\r
+
+      \        pm.expect(pm.response.text()).to.include(\"scheduled_at required\");\r
+
+      \        console.log(pm.response.json());\r
+
+      \    });\r
+
+      }"
+    language: text/javascript
+order: 4604
